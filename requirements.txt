@@ -1,0 +1,6 @@
+# Bio Sequence Analyzer - Dependencies
+# For running the program
+argparse>=1.4.0
+
+# For creating an executable
+pyinstaller>=5.0.0 
