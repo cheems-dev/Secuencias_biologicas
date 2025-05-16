@@ -57,21 +57,39 @@ def transcribe_dna_to_rna(sequence):
     # Transcribe ADN a ARN (reemplaza T por U)
     return sequence.replace("T", "U")
 
+def extract_fasta_sequence(file_path):
+    """
+    Extrae la secuencia de un archivo FASTA (desde la segunda línea en adelante).
+    Args:
+        file_path (str): Ruta al archivo FASTA
+    Returns:
+        str: Secuencia concatenada sin espacios ni tabs
+    """
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+        # Ignora la primera línea (cabecera) y concatena el resto
+        sequence = ''.join(line.strip() for line in lines[1:])
+        sequence = sequence.replace(' ', '').replace('\t', '')
+        return sequence
+
 def read_sequence_from_file(file_path):
     """
-    Lee una secuencia desde un archivo de texto e identifica su tipo.
-    
+    Lee una secuencia desde un archivo de texto (incluyendo formato FASTA) e identifica su tipo.
     Args:
         file_path (str): Ruta al archivo que contiene la secuencia
-        
     Returns:
         tuple: (secuencia, tipo_de_secuencia)
     """
     try:
-        with open(file_path, 'r') as file:
-            sequence = file.read().strip()
-            seq_type = identify_sequence_type(sequence)
-            return sequence, seq_type
+        if file_path.lower().endswith(('.fasta', '.fa')):
+            sequence = extract_fasta_sequence(file_path)
+        else:
+            with open(file_path, 'r') as file:
+                lines = file.readlines()
+                sequence = ''.join(line.strip() for line in lines if not line.startswith('>'))
+                sequence = sequence.replace(' ', '').replace('\t', '')
+        seq_type = identify_sequence_type(sequence)
+        return sequence, seq_type
     except Exception as e:
         return None, f"Error al leer el archivo: {str(e)}"
 
@@ -98,7 +116,7 @@ if __name__ == "__main__":
     
     if len(sys.argv) > 1:
         # Verifica si se proporciona una ruta de archivo
-        if sys.argv[1].endswith('.txt'):
+        if sys.argv[1].endswith(('.txt', '.fasta', '.fa')):
             sequence, seq_type = read_sequence_from_file(sys.argv[1])
             if sequence:
                 print(f"Secuencia: {sequence}")
